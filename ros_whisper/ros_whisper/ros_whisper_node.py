@@ -18,7 +18,7 @@ class RosWhisperNode(Node):
     def __init__(self):
         super().__init__('whisper_node')
 
-        self.openai_service = self.create_service(
+        self.whisper_service = self.create_service(
             WhisperResponse, 'whisper_server', self.whisper_callback
         )
 
