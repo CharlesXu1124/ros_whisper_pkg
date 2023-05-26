@@ -29,7 +29,6 @@ class RosWhisperNode(Node):
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 2
         self.RATE = 44100
-        self.RECORD_SECONDS = 5  # Change this value to adjust the duration of each recording
         self.OUTPUT_FILENAME = '{}.mp3'
         self.STOP_RECORDING = False
 
@@ -116,9 +115,9 @@ class RosWhisperNode(Node):
         self.get_logger().info("call received")
         
         self.start_recording()
-        time.sleep(5)
+        time.sleep(request.record_time)
         self.stop_recording()
-        
+
         
         audio = whisper.load_audio("record.mp3")
         audio = whisper.pad_or_trim(audio)
