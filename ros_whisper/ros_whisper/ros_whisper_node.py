@@ -19,7 +19,7 @@ class RosWhisperNode(Node):
         super().__init__('whisper_node')
 
         self.openai_service = self.create_service(
-            WhisperResponse, 'whisper_server', self.llm_callback
+            WhisperResponse, 'whisper_server', self.whisper_callback
         )
 
         DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -112,7 +112,7 @@ class RosWhisperNode(Node):
         self.STOP_RECORDING = True
 
 
-    def llm_callback(self, request, response): 
+    def whisper_callback(self, request, response): 
         self.get_logger().info("call received")
         
         self.start_recording()
