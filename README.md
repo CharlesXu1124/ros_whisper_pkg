@@ -15,7 +15,7 @@ ros2 launch ros_whisper_pkg whisper_server.launch.py
 ```
 cd ~/whisper_ws/src
 source install/setup.bash
-ros2 service call /whisper_server whisper_interfaces/srv/WhisperResponse "{transcribe: '1'}"
+ros2 service call /whisper_server whisper_interfaces/srv/WhisperResponse "{record_time: '5'}"
 ```
 
 ### Speak something near your microphone and it will return the transcribed results
