@@ -91,8 +91,6 @@ class RosWhisperNode(Node):
         self.remove_temp_file(wav_filename)
         
         print(f"Recording saved as {filename}")
-        
-    
 
     def start_recording(self):
         
@@ -115,7 +113,7 @@ class RosWhisperNode(Node):
         self.get_logger().info("call received")
         
         self.start_recording()
-        time.sleep(request.record_time)
+        time.sleep(int(request.record_time))
         self.stop_recording()
 
         
