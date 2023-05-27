@@ -11,6 +11,8 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "rclcpp_components/register_node_macro.hpp"
 
+#include "whisper_interfaces/srv/whisper_response.hpp"
+
 
 namespace whisper_client
 {
@@ -18,11 +20,14 @@ class WhisperClientNode : public rclcpp::Node
 {
 public:
   explicit WhisperClientNode(const rclcpp::NodeOptions & options);
-
   void call_whisper_server();
 
 private:
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_posecov_stamp_ptr;
+
+  rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr whisper_res_pub_ptr;
+  std::shared_ptr<std_msgs::msg::String> message;
+  rclcpp::Client<whisper_interfaces::srv::WhisperResponse>::SharedPtr client_;
 };
 
 }

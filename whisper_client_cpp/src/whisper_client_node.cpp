@@ -4,22 +4,24 @@ using std::placeholders::_1;
 
 namespace whisper_client
 {
-WhisperClientNode::WhisperClientNode(const rclcpp::NodeOptions & options) : rclcpp::Node("whisper_client_node", options)
-{
-  pub_posecov_stamp_ptr = this->create_publisher<std_msgs::msg::String>("whisper_inference_results", rclcpp::QoS{10});
-  timer_ = this->create_wall_timer(
-      3000ms, std::bind(&WhisperClientNode::call_whisper_server, this));
 
-}
+  WhisperClientNode::WhisperClientNode(const rclcpp::NodeOptions &options) : rclcpp::Node("whisper_client_node", options)
+  {
+    whisper_res_pub_ptr = this->create_publisher<std_msgs::msg::String>("whisper_inference_results", 10);
+    timer_ = this->create_wall_timer(std::chrono::milliseconds(3000), std::bind(&WhisperClientNode::call_whisper_server, this));
+    message = std::make_shared<std_msgs::msg::String>();
 
-void WhisperClientNode::call_whisper_server()
-{
-  auto message = std_msgs::msg::String();
-  message.data = "2";
-  pub_posecov_stamp_ptr->publish(message);
+    client_ = create_client<whisper_interfaces::srv::WhisperResponse>("whisper_client");
 
-}
+    
+  }
 
+  void WhisperClientNode::call_whisper_server()
+  {
+    timer_->cancel();
+    message->data = "2";
+    whisper_res_pub_ptr->publish(std::move(*message));
+  }
 
 }
 
