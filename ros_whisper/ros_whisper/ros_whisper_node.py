@@ -24,6 +24,8 @@ class RosWhisperNode(Node):
 
         DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
         
+        self.waveFile = None
+        
         # Global variables
         self.CHUNK = 1024
         self.FORMAT = pyaudio.paInt16
@@ -71,24 +73,17 @@ class RosWhisperNode(Node):
         # Terminate the PyAudio instance
         audio.terminate()
         
-        # Save the recorded audio as a WAV file
+        # Save the recorded audio as a Wave file
         now = datetime.datetime.now()
         filename = "record"
-        wav_filename = "record.mp3"
+        self.waveFile = "record.mp3"
 
-        wf = wave.open(wav_filename, 'wb')
+        wf = wave.open(self.waveFile, 'wb')
         wf.setnchannels(self.CHANNELS)
         wf.setsampwidth(audio.get_sample_size(self.FORMAT))
         wf.setframerate(self.RATE)
         wf.writeframes(b''.join(frames))
         wf.close()
-        
-        # Convert the WAV file to MP3
-        audio = AudioSegment.from_wav(wav_filename)
-        audio.export(filename, format='mp3')
-        
-        # Delete the temporary WAV file
-        self.remove_temp_file(wav_filename)
         
         print(f"Recording saved as {filename}")
 
@@ -129,6 +124,8 @@ class RosWhisperNode(Node):
         self.get_logger().info(result.text)
 
         response.result = result.text
+        
+        self.remove_temp_file(self.waveFile)
         return response
 
 
