@@ -2,7 +2,8 @@
 import rclpy
 from rclpy.node import Node
 import numpy as np
-from whisper_interfaces.srv import WhisperResponse
+from whisper_interfaces.action import WhisperResponse
+from rclpy.action import ActionServer
 import os
 import torch
 import whisper
@@ -16,10 +17,10 @@ import time
 
 class RosWhisperNode(Node):
     def __init__(self):
-        super().__init__('whisper_node')
+        super().__init__('whisper_server_node')
 
-        self.whisper_service = self.create_service(
-            WhisperResponse, 'whisper_server', self.whisper_callback
+        self.whisper_service = ActionServer(
+            self, WhisperResponse, 'whisper_server', self.whisper_callback
         )
 
         DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -74,8 +75,6 @@ class RosWhisperNode(Node):
         audio.terminate()
         
         # Save the recorded audio as a Wave file
-        now = datetime.datetime.now()
-        filename = "record"
         self.waveFile = "record.mp3"
 
         wf = wave.open(self.waveFile, 'wb')
@@ -85,7 +84,11 @@ class RosWhisperNode(Node):
         wf.writeframes(b''.join(frames))
         wf.close()
         
-        print(f"Recording saved as {filename}")
+        # Convert the WAV file to MP3
+        audio = AudioSegment.from_wav(self.waveFile)
+        audio.export(self.waveFile, format='mp3')
+        
+        print(f"Recording saved as {self.waveFile}")
 
     def start_recording(self):
         
@@ -104,14 +107,23 @@ class RosWhisperNode(Node):
         self.STOP_RECORDING = True
 
 
-    def whisper_callback(self, request, response): 
-        self.get_logger().info("call received")
+    def whisper_callback(self, goal_handle): 
+        self.get_logger().info("-------------- task received --------------")
+        
+        feedback_msg = WhisperResponse.Feedback()
+        
         
         self.start_recording()
-        time.sleep(int(request.record_time))
+        # record the specified seconds
+        time.sleep(int(goal_handle.request.record_and_transcribe))
         self.stop_recording()
-
         
+        # allowing record to finish
+        time.sleep(0.5)
+        
+        feedback_msg.log = "recording completed"
+        goal_handle.publish_feedback(feedback_msg)
+
         audio = whisper.load_audio("record.mp3")
         audio = whisper.pad_or_trim(audio)
         mel = whisper.log_mel_spectrogram(audio).to(self.model.device)
@@ -120,13 +132,19 @@ class RosWhisperNode(Node):
         # print(f"Detected language: {max(probs, key=probs.get)}")
 
         options = whisper.DecodingOptions(language="en", without_timestamps=True, fp16 = False)
-        result = whisper.decode(self.model, mel, options)
-        self.get_logger().info(result.text)
-
-        response.result = result.text
+        res = whisper.decode(self.model, mel, options)
+        self.get_logger().info(res.text)
         
+        # remove temporary file
         self.remove_temp_file(self.waveFile)
-        return response
+
+        # signal success of transcription
+        goal_handle.succeed()
+
+        result = WhisperResponse.Result()
+        result.transcription = res.text
+        
+        return result
 
 
 def main(args=None):

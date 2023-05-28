@@ -16,6 +16,8 @@
   <depend>std_msgs</depend>
   <depend>whisper_interfaces</depend>
 
+  <exec_depend>ros_whisper</exec_depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

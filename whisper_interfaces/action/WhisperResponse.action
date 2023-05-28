@@ -1,0 +1,8 @@
+# Goal
+string record_and_transcribe
+---
+# Result
+string transcription
+---
+# Feedback
+string log
