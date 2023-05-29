@@ -20,7 +20,7 @@ class RosWhisperNode(Node):
         super().__init__('whisper_server_node')
 
         self.whisper_service = ActionServer(
-            self, WhisperResponse, 'whisper_server', self.whisper_callback
+            self, WhisperResponse, 'whisper_transcribe', self.whisper_callback
         )
 
         DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

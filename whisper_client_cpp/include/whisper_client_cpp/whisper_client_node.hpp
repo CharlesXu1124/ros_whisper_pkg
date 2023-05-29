@@ -12,26 +12,32 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "rclcpp_components/register_node_macro.hpp"
 
-#include "whisper_interfaces/srv/whisper_response.hpp"
-
+#include "whisper_interfaces/action/whisper_response.hpp"
 
 namespace whisper_client
 {
-class WhisperClientNode : public rclcpp::Node
-{
-public:
-  explicit WhisperClientNode(const rclcpp::NodeOptions & options);
-  void call_whisper_server();
+  class WhisperClientNode : public rclcpp::Node
+  {
+  public:
+    using WhisperReponse = whisper_interfaces::action::WhisperResponse;
+    using GoalHandleWhisper = rclcpp_action::ClientGoalHandle<WhisperReponse>;
 
-private:
+    explicit WhisperClientNode(const rclcpp::NodeOptions &options);
+    void goal_response_callback(const GoalHandleWhisper::SharedPtr &goal_handle);
+    void feedback_callback(
+        GoalHandleWhisper::SharedPtr,
+        const std::shared_ptr<const WhisperReponse::Feedback> feedback);
+    void result_callback(const GoalHandleWhisper::WrappedResult &result);
 
-  rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr whisper_res_pub_ptr;
-  std::shared_ptr<std_msgs::msg::String> message;
-  rclcpp::Client<whisper_interfaces::srv::WhisperResponse>::SharedPtr client_;
-};
+    void call_whisper_server();
+
+  private:
+    rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr whisper_res_pub_ptr;
+    std::shared_ptr<std_msgs::msg::String> message;
+    rclcpp_action::Client<WhisperReponse>::SharedPtr client_ptr_;
+  };
 
 }
 
-
-#endif  // WHISPER_CLIENT_NODE__WHISPER_CLIENT_NODE_HPP_
+#endif // WHISPER_CLIENT_NODE__WHISPER_CLIENT_NODE_HPP_
